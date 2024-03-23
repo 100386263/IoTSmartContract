@@ -8,6 +8,8 @@
 #define MODBUS_SERIAL_RX_PIN 16
 #define MODBUS_SERIAL_TX_PIN 17
 #define NODE_URL "http://192.168.0.35:8545"
+#define SAVE_DATA_INTERVAL 5
+#define PURCHASE_SELL_INTERVAL 20
 
 // Constantes para la configuración de la red WiFi
 const char* WIFI_SSID = "DIGIFIBRA-ttZU";

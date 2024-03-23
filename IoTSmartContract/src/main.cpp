@@ -4,11 +4,14 @@
 
 #include "./ModbusClient/ModbusClient.h"
 #include "./RpcClient/RpcClient.h"
+#include "./DataRecorder/DataRecorder.h"
 #include <config.h>
 
 ModbusClient modbus_client;
-RpcClient rpc_client(NODE_URL, SMART_CONTRACT, WALLET );
+RpcClient rpc_client(NODE_URL, SMART_CONTRACT, WALLET);
+DataRecorder data_recorder(SAVE_DATA_INTERVAL);
 
+int lastMarketOperation = 0;
 void setup()
 {
   Serial.begin(MODBUS_SERIAL_BAUDRATE);
@@ -31,8 +34,30 @@ void setup()
 
 void loop()
 {
-  int modbus_data= int(modbus_client.consultarDatos());
+  unsigned long startTime = millis(); // Tiempo de inicio
+
+  int modbus_data = int(modbus_client.consultarDatos());
+  data_recorder.recordData(modbus_data);
   Serial.println(modbus_data);
-  Serial.println(rpc_client.send_rpc("0x6e5d8e03",modbus_data));
-  delay(5000);
+  if (millis() - lastMarketOperation >= PURCHASE_SELL_INTERVAL * 1000)
+  {
+    int average = data_recorder.calculateAverage();
+    float threshold = modbus_data * 0.1; // Calcula el 10% de modbus_data
+
+    if (average >= modbus_data - threshold && average <= modbus_data + threshold)
+    {
+      Serial.println(rpc_client.send_rpc("0x6e5d8e03", modbus_data));
+    }
+
+    lastMarketOperation = millis();
+  }
+
+  unsigned long executionTime = millis() - startTime; // Tiempo transcurrido
+  // Verificar si el tiempo de ejecución es menor que 1 segundo
+  if (executionTime < 1000)
+  {
+    delay(1000 - executionTime); // Agregar el retraso restante
+  }else{
+    Serial.println("Eres muy lento");
+  }
 }
