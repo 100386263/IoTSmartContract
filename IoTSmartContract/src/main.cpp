@@ -5,12 +5,11 @@
 #include "./DataRecorder/DataRecorder.h"
 #include "./MqttClient/MqttClient.h" // Asegúrate de incluir el archivo de encabezado de MqttClient
 #include <config.h>
-int variable = 0;
+
 ModbusClient modbus_client;
 RpcClient rpc_client(NODE_URL, SMART_CONTRACT, WALLET);
 DataRecorder data_recorder(SAVE_DATA_INTERVAL);
-MqttClient mqtt_client(MQTT_SERVER_IP, &variable);
-
+MqttClient mqtt_client(MQTT_SERVER_IP);
 int lastMarketOperation = 0;
 
 void setup()
@@ -34,17 +33,11 @@ void setup()
   mqtt_client.connect();
 }
 
-void loop()
+void purchase_sell(int modbus_data, float threshold)
 {
-  unsigned long startTime = millis(); // Tiempo de inicio
-
-  int modbus_data = int(modbus_client.consultarDatos());
-  data_recorder.recordData(modbus_data);
-  Serial.println(modbus_data);
   if (millis() - lastMarketOperation >= PURCHASE_SELL_INTERVAL * 1000)
   {
     int average = data_recorder.calculateAverage();
-    float threshold = modbus_data * 0.1; // Calcula el 10% de modbus_data
 
     if (average >= modbus_data - threshold && average <= modbus_data + threshold)
     {
@@ -53,10 +46,26 @@ void loop()
 
     lastMarketOperation = millis();
   }
+}
+
+void loop()
+{
+  unsigned long startTime = millis(); // Tiempo de inicio
+  // Comprobamos estrategia mqtt
   mqtt_client.loop();
-  Serial.print("Último estado: ");
-  Serial.println(LAST_STATE);
+
+  // Leemos consumo mqtt
+  int modbus_data = int(modbus_client.consultarDatos());
+  Serial.println(modbus_data);
+  // Guardamos consumo y mandamos por mqtt
+  data_recorder.recordData(modbus_data);
+  mqtt_client.set_consumption(modbus_data);
+
+  // Se comprueba si con la estrategia actual se puede comprar o vender
+  purchase_sell(modbus_data, strategy[LAST_STATE]);
+
   unsigned long executionTime = millis() - startTime; // Tiempo transcurrido
+
   // Verificar si el tiempo de ejecución es menor que 1 segundo
   if (executionTime < 1000)
   {

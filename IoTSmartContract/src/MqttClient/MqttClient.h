@@ -7,7 +7,8 @@
 class MqttClient
 {
 public:
-    MqttClient(const char *mqtt_server, int *variable);
+    MqttClient(const char *mqtt_server);
+    void set_consumption(int consumption);
     void connect();
     void loop();
 
@@ -16,7 +17,9 @@ private:
     WiFiClient espClient;
     PubSubClient mqttClient{espClient};
     const char *mqtt_server;
-    int *variable;
+    char mode_topic[50];
+    char consumption_topic[50];
+
 };
 extern int LAST_STATE;
 #endif

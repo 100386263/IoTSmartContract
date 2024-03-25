@@ -2,7 +2,7 @@
 #include "DataRecorder.h"
 
 DataRecorder::DataRecorder(int saveInterval) : dataCount(0), sum(0), lastRecordTime(0) {
-    NUM_DATA = 7200 / saveInterval; // Calcula NUM_DATA en base al intervalo de guardado
+    NUM_DATA = 3600 / saveInterval; // Calcula NUM_DATA en base al intervalo de guardado
     data = new int[NUM_DATA]; // Crea el array de longitud NUM_DATA
     save_interval = saveInterval;
 }
