@@ -1,17 +1,18 @@
-// main.cpp
 #include <Arduino.h>
 #include <WiFi.h>
-
 #include "./ModbusClient/ModbusClient.h"
 #include "./RpcClient/RpcClient.h"
 #include "./DataRecorder/DataRecorder.h"
+#include "./MqttClient/MqttClient.h" // Asegúrate de incluir el archivo de encabezado de MqttClient
 #include <config.h>
 
 ModbusClient modbus_client;
 RpcClient rpc_client(NODE_URL, SMART_CONTRACT, WALLET);
 DataRecorder data_recorder(SAVE_DATA_INTERVAL);
+MqttClient mqtt_client(MQTT_SERVER_IP, &MQTT_SERVER_PORT, WiFi); // Crear una instancia de MqttClient
 
 int lastMarketOperation = 0;
+
 void setup()
 {
   Serial.begin(MODBUS_SERIAL_BAUDRATE);
@@ -30,6 +31,9 @@ void setup()
   // Muestra la dirección IP
   Serial.println("Dirección IP: ");
   Serial.println(WiFi.localIP());
+
+  // Conectar al servidor MQTT
+  mqtt_client.connect(WIFI_SSID, WIFI_PASSWORD);
 }
 
 void loop()
@@ -51,6 +55,8 @@ void loop()
 
     lastMarketOperation = millis();
   }
+
+  mqtt_client.handleSubscriptions(); // Manejar las suscripciones MQTT
 
   unsigned long executionTime = millis() - startTime; // Tiempo transcurrido
   // Verificar si el tiempo de ejecución es menor que 1 segundo
