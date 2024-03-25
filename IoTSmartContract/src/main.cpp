@@ -54,6 +54,8 @@ void loop()
     lastMarketOperation = millis();
   }
   mqtt_client.loop();
+  Serial.print("Último estado: ");
+  Serial.println(LAST_STATE);
   unsigned long executionTime = millis() - startTime; // Tiempo transcurrido
   // Verificar si el tiempo de ejecución es menor que 1 segundo
   if (executionTime < 1000)

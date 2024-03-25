@@ -18,5 +18,5 @@ private:
     const char *mqtt_server;
     int *variable;
 };
-
+extern int LAST_STATE;
 #endif
