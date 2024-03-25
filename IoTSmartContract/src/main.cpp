@@ -5,11 +5,11 @@
 #include "./DataRecorder/DataRecorder.h"
 #include "./MqttClient/MqttClient.h" // Asegúrate de incluir el archivo de encabezado de MqttClient
 #include <config.h>
-
+int variable = 0;
 ModbusClient modbus_client;
 RpcClient rpc_client(NODE_URL, SMART_CONTRACT, WALLET);
 DataRecorder data_recorder(SAVE_DATA_INTERVAL);
-MqttClient mqtt_client(MQTT_SERVER_IP, &MQTT_SERVER_PORT, WiFi); // Crear una instancia de MqttClient
+MqttClient mqtt_client(MQTT_SERVER_IP, &variable);
 
 int lastMarketOperation = 0;
 
@@ -31,9 +31,7 @@ void setup()
   // Muestra la dirección IP
   Serial.println("Dirección IP: ");
   Serial.println(WiFi.localIP());
-
-  // Conectar al servidor MQTT
-  mqtt_client.connect(WIFI_SSID, WIFI_PASSWORD);
+  mqtt_client.connect();
 }
 
 void loop()
@@ -55,15 +53,15 @@ void loop()
 
     lastMarketOperation = millis();
   }
-
-  mqtt_client.handleSubscriptions(); // Manejar las suscripciones MQTT
-
+  mqtt_client.loop();
   unsigned long executionTime = millis() - startTime; // Tiempo transcurrido
   // Verificar si el tiempo de ejecución es menor que 1 segundo
   if (executionTime < 1000)
   {
     delay(1000 - executionTime); // Agregar el retraso restante
-  }else{
+  }
+  else
+  {
     Serial.println("Eres muy lento");
   }
 }
