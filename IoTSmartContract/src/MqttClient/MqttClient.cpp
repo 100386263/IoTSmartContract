@@ -1,8 +1,9 @@
 #include "MqttClient.h"
 #include <string.h>
 
-int LAST_STATE = 0; // 0 = CONSERVADOR , 1 = MODERADO ,2 = ARRIESGADO
+int STRATEGY = 0; // 0 = CONSERVADOR , 1 = MODERADO ,2 = ARRIESGADO
 char MODE_TOPIC[50];
+char MODE_TOPIC_PETITION[50];
 MqttClient::MqttClient(const char *mqtt_server) : mqtt_server(mqtt_server)
 {
     mqttClient.setServer(mqtt_server, 1883);
@@ -24,14 +25,17 @@ void MqttClient::connect()
             char ip_str[50]; // Ajusta el tamaño según sea necesario
             sprintf(ip_str, "%d.%d.%d.%d", localIP[0], localIP[1], localIP[2], localIP[3]);
             sprintf(mode_topic, "%s/mode", ip_str);
+            sprintf(mode_topic_petition, "%s/mode-petition", ip_str);
             sprintf(consumption_topic, "%s/consumption", ip_str);
             mqttClient.subscribe(mode_topic);
+            mqttClient.subscribe(mode_topic_petition);
 
             char buffer[3]; // Tamaño del buffer
 
-            sprintf(buffer, "%d", LAST_STATE);
+            sprintf(buffer, "%d", STRATEGY);
             // Publicar un mensaje al conectar
-            strcpy(MODE_TOPIC,mode_topic);
+            strcpy(MODE_TOPIC_PETITION, mode_topic_petition);
+            strcpy(MODE_TOPIC, mode_topic);
             mqttClient.publish(mode_topic, buffer);
         }
         else
@@ -60,18 +64,30 @@ void MqttClient::callback(char *topic, byte *payload, unsigned int length)
     Serial.print("Contenido: ");
 
     // Convertir payload a un entero
-    int receivedInt = atoi((char *)payload);
+    int receivedValue = 0;
+    for (int i = 0; i < length; i++)
+    {
+        receivedValue = receivedValue * 10 + (payload[i] - '0');
+    }
 
     // Imprimir el valor del entero recibido
-    Serial.println(receivedInt);
-    if (strcmp(topic, MODE_TOPIC) == 0)
+    Serial.println(receivedValue);
+    if (strcmp(topic, MODE_TOPIC_PETITION) == 0)
     {
-        LAST_STATE = receivedInt;
+
+        STRATEGY = receivedValue;
     }
 }
-void MqttClient::set_consumption(int consumption){
-                char buffer[20]; // Tamaño del buffer
+void MqttClient::set_consumption(int consumption)
+{
+    char buffer[20]; // Tamaño del buffer
 
-            sprintf(buffer, "%d", consumption);
-            mqttClient.publish(consumption_topic, buffer);
+    sprintf(buffer, "%d", consumption);
+    mqttClient.publish(consumption_topic, buffer);
+}
+void MqttClient::send_confirmation(int strategy)
+{
+    char buffer[20]; // Tamaño del buffer
+    sprintf(buffer, "%d", strategy);
+    mqttClient.publish(mode_topic, buffer);
 }

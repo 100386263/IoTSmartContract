@@ -9,6 +9,7 @@ class MqttClient
 public:
     MqttClient(const char *mqtt_server);
     void set_consumption(int consumption);
+    void send_confirmation(int strategy);
     void connect();
     void loop();
 
@@ -18,8 +19,9 @@ private:
     PubSubClient mqttClient{espClient};
     const char *mqtt_server;
     char mode_topic[50];
+    char mode_topic_petition[50];
     char consumption_topic[50];
 
 };
-extern int LAST_STATE;
+extern int STRATEGY;
 #endif

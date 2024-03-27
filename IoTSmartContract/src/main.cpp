@@ -11,7 +11,7 @@ RpcClient rpc_client(NODE_URL, SMART_CONTRACT, WALLET);
 DataRecorder data_recorder(SAVE_DATA_INTERVAL);
 MqttClient mqtt_client(MQTT_SERVER_IP);
 int lastMarketOperation = 0;
-
+int last_strategy = 0;
 void setup()
 {
   Serial.begin(MODBUS_SERIAL_BAUDRATE);
@@ -53,16 +53,23 @@ void loop()
   unsigned long startTime = millis(); // Tiempo de inicio
   // Comprobamos estrategia mqtt
   mqtt_client.loop();
-
+  Serial.print("Estrategia: ");
+  Serial.println(STRATEGY);
+  if (STRATEGY != last_strategy){
+    mqtt_client.send_confirmation(STRATEGY);
+  }
+  last_strategy = STRATEGY;
   // Leemos consumo mqtt
   int modbus_data = int(modbus_client.consultarDatos());
   Serial.println(modbus_data);
   // Guardamos consumo y mandamos por mqtt
   data_recorder.recordData(modbus_data);
+
   mqtt_client.set_consumption(modbus_data);
 
   // Se comprueba si con la estrategia actual se puede comprar o vender
-  purchase_sell(modbus_data, strategy[LAST_STATE]);
+
+  purchase_sell(modbus_data, strategy[STRATEGY]);
 
   unsigned long executionTime = millis() - startTime; // Tiempo transcurrido
 
