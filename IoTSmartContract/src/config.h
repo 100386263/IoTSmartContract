@@ -14,7 +14,7 @@
 // Constantes para la configuración de la red WiFi
 const char* WIFI_SSID = "DIGIFIBRA-ttZU";
 const char* WIFI_PASSWORD = "maraljo1";
-const char* SMART_CONTRACT = "0x28E0238EDE624dABa90591701fB770ad53299b7b";
+const char* SMART_CONTRACT = "0x55b7D61e44E7a1E81ad7a56D65d27b13Ba4E653E";
 const char* WALLET = "0x8Af49da10D7613D314fD199Aef24528550a90793";
 const char* MQTT_SERVER_IP = "192.168.0.33";
 
