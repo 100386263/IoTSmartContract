@@ -15,7 +15,7 @@ void MqttClient::connect()
     while (!mqttClient.connected())
     {
         Serial.println("Conectando al servidor MQTT...");
-        if (mqttClient.connect("arduino-client", "marcos", "Maraljo1"))
+        if (mqttClient.connect("arduino-client")) //, "marcos", "Maraljo1"))
         {
             Serial.println("Conectado al servidor MQTT");
             // Obtener la dirección IP local

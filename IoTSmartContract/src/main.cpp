@@ -4,12 +4,14 @@
 #include "./RpcClient/RpcClient.h"
 #include "./DataRecorder/DataRecorder.h"
 #include "./MqttClient/MqttClient.h" // Asegúrate de incluir el archivo de encabezado de MqttClient
+#include "./SolarPrediction/SolarPrediction.h"
 #include <config.h>
 
 ModbusClient modbus_client;
 RpcClient rpc_client(NODE_URL, SMART_CONTRACT, WALLET);
 DataRecorder data_recorder(SAVE_DATA_INTERVAL);
 MqttClient mqtt_client(MQTT_SERVER_IP);
+SolarPrediction solar_predictor;
 int lastMarketOperation = 0;
 int last_strategy = 0;
 void setup()
@@ -31,6 +33,7 @@ void setup()
   Serial.println("Dirección IP: ");
   Serial.println(WiFi.localIP());
   mqtt_client.connect();
+  solar_predictor.updatePredictions();
 }
 
 void purchase_sell(int modbus_data, float threshold)
