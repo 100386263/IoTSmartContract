@@ -2,32 +2,75 @@
 #include <Arduino.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
+#include <../NTPClient/NTPClient.h>
+#include <TimeLib.h>
+#include <string.h>
+const long utcOffsetInSeconds = 7200; // Adjust according to your timezone offset
+
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 
 SolarPrediction::SolarPrediction()
 {
-  // Constructor
 }
 
 // Método para obtener la predicción para la siguiente hora
-float SolarPrediction::getPredictionForNextHour(int currentHour)
+int SolarPrediction::getPredictionForNextHour()
 {
   // Supongamos que aquí haces una petición HTTP para obtener las predicciones en tiempo real
   // Por ahora, simplemente supongamos que tienes predicciones estáticas
+  // Constructor
+  timeClient.begin();
+  timeClient.update(); // Update the time
 
-  // Definir un arreglo de predicciones para cada hora del día (estático)
-  float predicciones[] = {0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9};
+  // Obtener la fecha y hora actual
+  time_t rawTime = timeClient.getEpochTime();
+  struct tm *timeinfo;
+  timeinfo = localtime(&rawTime);
+  int day = timeinfo->tm_mday;
+  int next_hour = timeinfo->tm_hour + 1;
+  for (hour_production prediction : predictions)
+  {
+    if (prediction.day == day && prediction.hour == next_hour)
+    {
+      return prediction.production;
+    }
+  }
 
-  // Asegurarse de que la hora actual esté dentro del rango válido (0-23)
-  currentHour %= 24;
+  return -1;
+}
 
-  // Obtener la predicción para la siguiente hora
-  int nextHour = (currentHour + 1) % 24;
-  return predicciones[nextHour];
+void SolarPrediction::updateCurrentDateTime()
+{
+  // Constructor
+  timeClient.begin();
+  timeClient.update(); // Update the time
+
+  // Obtener la fecha y hora actual
+  time_t rawTime = timeClient.getEpochTime();
+  struct tm *timeinfo;
+  timeinfo = localtime(&rawTime);
+  SolarPrediction::current_date.day = timeinfo->tm_mday;
+  SolarPrediction::current_date.hour = timeinfo->tm_hour; // Corrected from tm_mday to tm_hour
 }
 
 void SolarPrediction::updatePredictions()
 {
   HTTPClient http;
+  SolarPrediction::updateCurrentDateTime(); // Added semicolon here
+  for (int i = 0; i < 24; ++i)
+  {
+    predictions[i].day = current_date.day;
+    predictions[i].hour = i;
+    predictions[i].production = 0;
+  }
+
+  for (int i = 24; i < 48; ++i)
+  {
+    predictions[i].day = current_date.day + 1;
+    predictions[i].hour = i - 24;
+    predictions[i].production = 0;
+  }
 
   // Realizar la solicitud HTTP GET
   http.begin("http://192.168.0.33:1880/endpoint/estimate/40.52037/-3.54458/35/0/6");
@@ -44,17 +87,30 @@ void SolarPrediction::updatePredictions()
 
     // Obtener el valor de watt_hours
     JsonObject result = doc["result"];
-    JsonObject watt_hours = result["watt_hours"];
+    JsonObject watt_hours = result["watt_hours_period"];
 
     // Iterar sobre los elementos de watt_hours y imprimirlos
     Serial.println("Valores de watt_hours:");
     for (JsonPair kv : watt_hours)
     {
-      Serial.print(kv.key().c_str());
-      Serial.print(": ");
-      Serial.println(kv.value().as<int>());
+      // Obtener la clave como cadena
+      String key = kv.key().c_str();
+      // Extrayendo los dos primeros dígitos de la hora y convirtiéndolos a un entero
+      int prediction_hour = key.substring(11, 13).toInt();
+      // Extrayendo el día del mes
+      int prediction_day = key.substring(8, 10).toInt();
+      int prediction_production = kv.value().as<int>();
+      for (int i = 0; i < 48; ++i)
+      {
+        if (predictions[i].day == prediction_day && predictions[i].hour == prediction_hour)
+        {
+          // Se encontró una coincidencia, cambiar la producción a mil
+          predictions[i].production = prediction_production;
+          // Romper el bucle ya que ya hemos realizado el cambio
+          break;
+        }
+      }
     }
-
     http.end(); // Cerrar la conexión
   }
   else

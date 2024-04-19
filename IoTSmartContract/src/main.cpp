@@ -40,11 +40,23 @@ void purchase_sell(int modbus_data, float threshold)
 {
   if (millis() - lastMarketOperation >= PURCHASE_SELL_INTERVAL * 1000)
   {
-    int average = data_recorder.calculateAverage();
+    int average = data_recorder.calculateAverage();                        // Media de CONSUMO de la vivienda
+    int next_hour_production = solar_predictor.getPredictionForNextHour(); // Predicción de producción solar próxima hora
+    int result = next_hour_production - average;                           // Predicción menos consumo
 
-    if (average >= modbus_data - threshold && average <= modbus_data + threshold)
+    if (result > 0)
     {
-      Serial.println(rpc_client.send_rpc("0x6e5d8e03", modbus_data));
+      // Hay que llamar a la funcion de venta
+      Serial.println("Se vende");
+      int energy_to_sell = int(average * threshold);
+      Serial.println(rpc_client.send_rpc("0x6e5d8e03", energy_to_sell));
+    }
+    else if (result < 0)
+    {
+      // Hay que llamar a la funcion de compra
+      Serial.println("Se compra");
+      int energy_to_buy = int(average * threshold);
+      Serial.println(rpc_client.send_rpc("0x6e5d8e03", energy_to_buy));
     }
 
     lastMarketOperation = millis();
@@ -58,7 +70,8 @@ void loop()
   mqtt_client.loop();
   Serial.print("Estrategia: ");
   Serial.println(STRATEGY);
-  if (STRATEGY != last_strategy){
+  if (STRATEGY != last_strategy)
+  {
     mqtt_client.send_confirmation(STRATEGY);
   }
   last_strategy = STRATEGY;
