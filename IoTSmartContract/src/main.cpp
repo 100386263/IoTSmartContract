@@ -42,13 +42,18 @@ void purchase_sell(int modbus_data, float threshold)
   {
     int average = data_recorder.calculateAverage();                        // Media de CONSUMO de la vivienda
     int next_hour_production = solar_predictor.getPredictionForNextHour(); // Predicción de producción solar próxima hora
-    int result = next_hour_production - average;                           // Predicción menos consumo
-
+    int result = next_hour_production - average;  
+    Serial.print("Produccion: ");                         // Predicción menos consumo
+    Serial.println(next_hour_production);
+        Serial.print("Media: ");                         // Predicción menos consumo
+    Serial.println(average);
+        Serial.print("Resultado: ");                         // Predicción menos consumo
+    Serial.println(result);
     if (result > 0)
     {
       // Hay que llamar a la funcion de venta
       Serial.println("Se vende");
-      int energy_to_sell = int(average * threshold);
+      int energy_to_sell = int(result * threshold);
       Serial.println(rpc_client.send_rpc("0x6e5d8e03", energy_to_sell));
     }
     else if (result < 0)
@@ -68,8 +73,6 @@ void loop()
   unsigned long startTime = millis(); // Tiempo de inicio
   // Comprobamos estrategia mqtt
   mqtt_client.loop();
-  Serial.print("Estrategia: ");
-  Serial.println(STRATEGY);
   if (STRATEGY != last_strategy)
   {
     mqtt_client.send_confirmation(STRATEGY);
@@ -77,7 +80,6 @@ void loop()
   last_strategy = STRATEGY;
   // Leemos consumo mqtt
   int modbus_data = int(modbus_client.consultarDatos());
-  Serial.println(modbus_data);
   // Guardamos consumo y mandamos por mqtt
   data_recorder.recordData(modbus_data);
 
@@ -90,6 +92,8 @@ void loop()
   unsigned long executionTime = millis() - startTime; // Tiempo transcurrido
 
   // Verificar si el tiempo de ejecución es menor que 1 segundo
+  Serial.print("Tiempo de ejcucion: ");
+  Serial.println(executionTime);
   if (executionTime < 1000)
   {
     delay(1000 - executionTime); // Agregar el retraso restante

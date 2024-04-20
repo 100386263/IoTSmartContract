@@ -73,7 +73,7 @@ void SolarPrediction::updatePredictions()
   }
 
   // Realizar la solicitud HTTP GET
-  http.begin("http://192.168.0.33:1880/endpoint/estimate/40.52037/-3.54458/35/0/6");
+  http.begin("http://192.168.0.35:8000/estimate/40.52037/-3.54458/35/0/6");
 
   int httpCode = http.GET(); // Realizar la solicitud GET
 
@@ -89,8 +89,6 @@ void SolarPrediction::updatePredictions()
     JsonObject result = doc["result"];
     JsonObject watt_hours = result["watt_hours_period"];
 
-    // Iterar sobre los elementos de watt_hours y imprimirlos
-    Serial.println("Valores de watt_hours:");
     for (JsonPair kv : watt_hours)
     {
       // Obtener la clave como cadena
