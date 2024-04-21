@@ -42,26 +42,30 @@ void purchase_sell(int modbus_data, float threshold)
   {
     int average = data_recorder.calculateAverage();                        // Media de CONSUMO de la vivienda
     int next_hour_production = solar_predictor.getPredictionForNextHour(); // Predicción de producción solar próxima hora
-    int result = next_hour_production - average;  
-    Serial.print("Produccion: ");                         // Predicción menos consumo
+    int result = next_hour_production - average;
+    Serial.print("Produccion: "); // Predicción menos consumo
     Serial.println(next_hour_production);
-        Serial.print("Media: ");                         // Predicción menos consumo
+    Serial.print("Media: "); // Predicción menos consumo
     Serial.println(average);
-        Serial.print("Resultado: ");                         // Predicción menos consumo
+    Serial.print("Resultado: "); // Predicción menos consumo
     Serial.println(result);
     if (result > 0)
     {
       // Hay que llamar a la funcion de venta
-      Serial.println("Se vende");
+      Serial.print("Se venden ");
       int energy_to_sell = int(result * threshold);
-      Serial.println(rpc_client.send_rpc("0x6e5d8e03", energy_to_sell));
+      Serial.print(energy_to_sell);
+      Serial.println(" kWh");
+      Serial.println(rpc_client.send_rpc("0x09baa07d", energy_to_sell));
     }
     else if (result < 0)
     {
       // Hay que llamar a la funcion de compra
-      Serial.println("Se compra");
+      Serial.println("Se compran ");
       int energy_to_buy = int(average * threshold);
-      Serial.println(rpc_client.send_rpc("0x6e5d8e03", energy_to_buy));
+      Serial.print(energy_to_buy);
+      Serial.println(" kWh");
+      Serial.println(rpc_client.send_rpc("0x02bcd335", energy_to_buy));
     }
 
     lastMarketOperation = millis();
@@ -79,21 +83,19 @@ void loop()
   }
   last_strategy = STRATEGY;
   // Leemos consumo mqtt
+  unsigned long startModbus = millis(); // Tiempo de inicio
   int modbus_data = int(modbus_client.consultarDatos());
   // Guardamos consumo y mandamos por mqtt
   data_recorder.recordData(modbus_data);
-
+  // Publicamos consumo en mqtt
   mqtt_client.set_consumption(modbus_data);
 
   // Se comprueba si con la estrategia actual se puede comprar o vender
-
   purchase_sell(modbus_data, strategy[STRATEGY]);
 
   unsigned long executionTime = millis() - startTime; // Tiempo transcurrido
 
-  // Verificar si el tiempo de ejecución es menor que 1 segundo
-  Serial.print("Tiempo de ejcucion: ");
-  Serial.println(executionTime);
+  // Verificar si el tiempo de ejecución es menor que 1 segund
   if (executionTime < 1000)
   {
     delay(1000 - executionTime); // Agregar el retraso restante
