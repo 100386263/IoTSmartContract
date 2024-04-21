@@ -8,7 +8,7 @@ class MqttClient
 {
 public:
     MqttClient(const char *mqtt_server);
-    void set_consumption(int consumption);
+    void set_consumption(int consumption, int production);
     void send_confirmation(int strategy);
     void connect();
     void loop();
@@ -21,6 +21,7 @@ private:
     char mode_topic[50];
     char mode_topic_petition[50];
     char consumption_topic[50];
+    char prouduction_topic[50];
 
 };
 extern int STRATEGY;

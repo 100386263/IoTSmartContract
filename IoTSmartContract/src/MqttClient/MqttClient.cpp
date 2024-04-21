@@ -27,6 +27,7 @@ void MqttClient::connect()
             sprintf(mode_topic, "%s/mode", ip_str);
             sprintf(mode_topic_petition, "%s/mode-petition", ip_str);
             sprintf(consumption_topic, "%s/consumption", ip_str);
+            sprintf(prouduction_topic, "%s/production", ip_str);
             mqttClient.subscribe(mode_topic);
             mqttClient.subscribe(mode_topic_petition);
 
@@ -78,12 +79,16 @@ void MqttClient::callback(char *topic, byte *payload, unsigned int length)
         STRATEGY = receivedValue;
     }
 }
-void MqttClient::set_consumption(int consumption)
+void MqttClient::set_consumption(int consumption, int production)
 {
     char buffer[20]; // Tamaño del buffer
 
     sprintf(buffer, "%d", consumption);
     mqttClient.publish(consumption_topic, buffer);
+    char buffer1[20]; // Tamaño del buffer
+
+    sprintf(buffer1, "%d", production);
+    mqttClient.publish(prouduction_topic, buffer1);
 }
 void MqttClient::send_confirmation(int strategy)
 {

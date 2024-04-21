@@ -88,7 +88,8 @@ void loop()
   // Guardamos consumo y mandamos por mqtt
   data_recorder.recordData(modbus_data);
   // Publicamos consumo en mqtt
-  mqtt_client.set_consumption(modbus_data);
+  int actual_production = solar_predictor.getPredictionForNextHour();
+  mqtt_client.set_consumption(modbus_data, actual_production);
 
   // Se comprueba si con la estrategia actual se puede comprar o vender
   purchase_sell(modbus_data, strategy[STRATEGY]);

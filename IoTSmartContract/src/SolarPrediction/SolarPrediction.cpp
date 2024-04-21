@@ -29,6 +29,11 @@ int SolarPrediction::getPredictionForNextHour()
   timeinfo = localtime(&rawTime);
   int day = timeinfo->tm_mday;
   int next_hour = timeinfo->tm_hour + 1;
+  if (next_hour > 23)
+  {
+    next_hour = 0;
+    day = day + 1;
+  }
   for (hour_production prediction : predictions)
   {
     if (prediction.day == day && prediction.hour == next_hour)
