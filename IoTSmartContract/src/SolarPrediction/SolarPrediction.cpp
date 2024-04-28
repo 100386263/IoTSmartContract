@@ -13,13 +13,41 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 SolarPrediction::SolarPrediction()
 {
 }
+int days_in_month(int month, int year)
+{
+  switch (month)
+  {
+  case 1:  // Enero
+  case 3:  // Marzo
+  case 5:  // Mayo
+  case 7:  // Julio
+  case 8:  // Agosto
+  case 10: // Octubre
+  case 12: // Diciembre
+    return 31;
+  case 4:  // Abril
+  case 6:  // Junio
+  case 9:  // Septiembre
+  case 11: // Noviembre
+    return 30;
+  case 2: // Febrero
+    if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0))
+    {
+      // Año bisiesto, febrero tiene 29 días
+      return 29;
+    }
+    else
+    {
+      // No es un año bisiesto, febrero tiene 28 días
+      return 28;
+    }
+  default:
+    return -1; // Mes inválido
+  }
+}
 
-// Método para obtener la predicción para la siguiente hora
 int SolarPrediction::getPredictionForNextHour()
 {
-  // Supongamos que aquí haces una petición HTTP para obtener las predicciones en tiempo real
-  // Por ahora, simplemente supongamos que tienes predicciones estáticas
-  // Constructor
   timeClient.begin();
   timeClient.update(); // Update the time
 
@@ -27,13 +55,31 @@ int SolarPrediction::getPredictionForNextHour()
   time_t rawTime = timeClient.getEpochTime();
   struct tm *timeinfo;
   timeinfo = localtime(&rawTime);
+
   int day = timeinfo->tm_mday;
   int next_hour = timeinfo->tm_hour + 1;
+
+  // Verificar si el siguiente hora está en el próximo día
   if (next_hour > 23)
   {
     next_hour = 0;
     day = day + 1;
+
+    // Verificar si el próximo día es el primer día del mes siguiente
+    if (day > days_in_month(timeinfo->tm_mon + 1, timeinfo->tm_year + 1900))
+    {
+      day = 1;
+      timeinfo->tm_mon += 1;
+
+      // Verificar si el próximo mes es el siguiente año
+      if (timeinfo->tm_mon > 11)
+      {
+        timeinfo->tm_mon = 0;
+        timeinfo->tm_year += 1;
+      }
+    }
   }
+  // Buscar la predicción para la próxima hora
   for (hour_production prediction : predictions)
   {
     if (prediction.day == day && prediction.hour == next_hour)
