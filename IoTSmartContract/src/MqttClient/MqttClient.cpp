@@ -2,6 +2,8 @@
 #include <string.h>
 
 int STRATEGY = 0; // 0 = CONSERVADOR , 1 = MODERADO ,2 = ARRIESGADO
+float BUY_PRICE = 0.0;
+float SELL_PRICE = 0.0;
 char MODE_TOPIC[50];
 char MODE_TOPIC_PETITION[50];
 MqttClient::MqttClient(const char *mqtt_server) : mqtt_server(mqtt_server)
@@ -27,9 +29,13 @@ void MqttClient::connect()
             sprintf(mode_topic, "%s/mode", ip_str);
             sprintf(mode_topic_petition, "%s/mode-petition", ip_str);
             sprintf(consumption_topic, "%s/consumption", ip_str);
-            sprintf(prouduction_topic, "%s/production", ip_str);
+            sprintf(production_topic, "%s/production", ip_str);
+            sprintf(buy_price_topic, "%s/buy-price", ip_str);
+            sprintf(sell_price_topic, "%s/sell-price", ip_str);
             mqttClient.subscribe(mode_topic);
             mqttClient.subscribe(mode_topic_petition);
+            mqttClient.subscribe(buy_price_topic);
+            mqttClient.subscribe(sell_price_topic);
 
             char buffer[3]; // Tamaño del buffer
 
@@ -64,21 +70,51 @@ void MqttClient::callback(char *topic, byte *payload, unsigned int length)
     Serial.println(topic);
     Serial.print("Contenido: ");
 
-    // Convertir payload a un entero
-    int receivedValue = 0;
-    for (int i = 0; i < length; i++)
+    // Variable para almacenar el valor recibido
+    int intValue = 0;
+    float floatValue = 0.0;
+
+    // Convertir payload a una cadena de caracteres
+    char payloadStr[length + 1];
+    memcpy(payloadStr, payload, length);
+    payloadStr[length] = '\0'; // Añadir el carácter nulo al final
+
+    // Verificar si el topic contiene "mode-petition"
+    if (strstr(topic, "mode-petition") != NULL)
     {
-        receivedValue = receivedValue * 10 + (payload[i] - '0');
+        // Convertir payload a un entero
+        for (int i = 0; i < length; i++)
+        {
+            if (payload[i] >= '0' && payload[i] <= '9')
+            {
+                intValue = intValue * 10 + (payload[i] - '0');
+            }
+        }
+
+        // Imprimir el valor del entero recibido
+        Serial.println(intValue);
+
+        // Actualizar STRATEGY
+        STRATEGY = intValue;
     }
-
-    // Imprimir el valor del entero recibido
-    Serial.println(receivedValue);
-    if (strcmp(topic, MODE_TOPIC_PETITION) == 0)
+    else
     {
+        // Convertir payload a un float
+        floatValue = atof(payloadStr);
+        // Imprimir el valor del float recibido
+        Serial.println(floatValue);
+        if (strstr(topic, "buy-price") != NULL)
+        {
+            BUY_PRICE = floatValue;
+        }
+        if (strstr(topic, "sell-price") != NULL)
+        {
+            SELL_PRICE = floatValue;
+        }
 
-        STRATEGY = receivedValue;
     }
 }
+
 void MqttClient::set_consumption(int consumption, int production)
 {
     char buffer[20]; // Tamaño del buffer
@@ -88,7 +124,7 @@ void MqttClient::set_consumption(int consumption, int production)
     char buffer1[20]; // Tamaño del buffer
 
     sprintf(buffer1, "%d", production);
-    mqttClient.publish(prouduction_topic, buffer1);
+    mqttClient.publish(production_topic, buffer1);
 }
 void MqttClient::send_confirmation(int strategy)
 {

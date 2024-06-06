@@ -22,7 +22,6 @@ String RpcClient::send_rpc(String function, int arguments)
     http.begin(NODE_URL);
     http.addHeader("Content-Type", "application/json");
     http.POST(jsonRequest);
-
     int httpResponseCode = http.POST(jsonRequest);
 
     if (httpResponseCode > 0)

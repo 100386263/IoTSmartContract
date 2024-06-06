@@ -2,12 +2,14 @@
 #include "ModbusClient.h"
 #include "ModbusMaster.h"
 
+
+
 ModbusClient::ModbusClient() {
     // Aquí es donde se inicializa modbusNode con la comunicación serie
     modbusNode.begin(1, Serial2); // Se asume que el dispositivo Modbus está en la dirección 1
 }
 
-float ModbusClient::consultarDatos() {
+float ModbusClient::query_modbus_data() {
   uint8_t result = modbusNode.readHoldingRegisters(0x2000, 4);  // Lee 4 registros empezando desde la dirección 0x2004
 
   // Verifica si la lectura fue exitosa

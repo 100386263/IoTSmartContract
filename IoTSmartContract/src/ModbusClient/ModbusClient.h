@@ -8,7 +8,7 @@
 class ModbusClient {
 public:
     ModbusClient(); // Constructor declaration
-    float consultarDatos();
+    float query_modbus_data();
 
 private:
     ModbusMaster modbusNode;

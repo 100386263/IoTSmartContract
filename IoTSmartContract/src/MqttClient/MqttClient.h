@@ -21,8 +21,12 @@ private:
     char mode_topic[50];
     char mode_topic_petition[50];
     char consumption_topic[50];
-    char prouduction_topic[50];
+    char production_topic[50];
+    char buy_price_topic[50];
+    char sell_price_topic[50];
 
 };
 extern int STRATEGY;
+extern float BUY_PRICE;
+extern float SELL_PRICE;
 #endif
