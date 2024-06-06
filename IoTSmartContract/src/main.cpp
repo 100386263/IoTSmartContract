@@ -47,8 +47,9 @@ void purchase_sell(int modbus_data, float threshold)
     int result = next_hour_production - average;
     // Serial.print("Produccion: "); // Predicción menos consumo
     // Serial.println(next_hour_production);
-    // Serial.print("Media: "); // Predicción menos consumo
-    // Serial.println(average);
+    Serial.print("Energía consumida: "); // Predicción menos consumo
+    Serial.print(average);
+    Serial.println("Wh");
     // Serial.print("Resultado: "); // Predicción menos consumo
     // Serial.println(result);
     if (result > 0)

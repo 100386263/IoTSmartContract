@@ -29,10 +29,14 @@ int DataRecorder::calculateAverage() {
         return 0; // Retorna 0 si no hay datos guardados para evitar divisiones por cero
     }
 
-    int sum = 0;
+    float sumWh = 0;
     for (int i = 0; i < dataCount; i++) {
-        sum += data[i];
+        // Convierte la potencia (W) a energía (Wh) para el intervalo de tiempo
+        if (data[i] !=0){
+        sumWh += data[i] * (save_interval / 3600.0);
+        }
+
     }
-    int average = int(sum/dataCount);
-    return average; // Redondea al entero más cercano
+
+    return int(sumWh); // Redondea al entero más cercano
 }
