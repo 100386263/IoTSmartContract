@@ -11,11 +11,11 @@
 #define SAVE_DATA_INTERVAL 5
 #define PURCHASE_SELL_INTERVAL 20
 
-// Constantes para la configuración de la red WiFi
+
 const char* WIFI_SSID = "DIGIFIBRA-ttZU";
-const char* WIFI_PASSWORD = "maraljo1";
-const char* SMART_CONTRACT = "0xbb7fA9FCb8C070dcf22739fBf4Fa8640DF059b89";
-const char* WALLET = "0x30B2F3A2Dbd2B2B326596eCf5F1F9CC538c02CD3";
+const char* WIFI_PASSWORD = "contraseñawifi";
+const char* SMART_CONTRACT = "0x6000377E652025D23051929a042214f0182aFe8c";
+const char* WALLET = "0x6947191f0E3d309d43C74A390C9F5c0810c7244C";
 const char* MQTT_SERVER_IP = "192.168.0.35";
 
 const float strategy[3] = {0.1,0.5,0.7};
